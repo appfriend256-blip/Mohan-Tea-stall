@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mohan Tea Stall - Addajon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <style>
+        @keyframes colorShift {
+            0% { background-color: #1e293b; }
+            33% { background-color: #0f172a; }
+            66% { background-color: #334155; }
+            100% { background-color: #1e293b; }
+        }
+        .dynamic-bg { animation: colorShift 9s infinite; }
+    </style>
+</head>
+<body class="bg-slate-900 text-white font-sans min-h-screen flex flex-col">
+
+    <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black transition-opacity duration-1000">
+        <div id="splashLogoContainer" class="w-28 h-28 rounded-full border-4 border-amber-500 overflow-hidden shadow-2xl mb-4 flex items-center justify-center bg-slate-800">
+            <i class="fa-solid fa-mug-hot text-5xl text-amber-500"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-amber-400 mb-2">মোহন টি স্টল (Mohan Tea Stall)</h1>
+        <p class="text-slate-300 text-sm animate-pulse">আড্ডাজন - কেষ্টপুর ট্রাফিক গার্ড</p>
+    </div>
+
+    <header class="dynamic-bg shadow-md sticky top-0 z-40 border-b border-slate-700">
+        <div class="bg-amber-500 text-slate-950 text-xs font-bold py-1 px-4 text-center overflow-hidden whitespace-nowrap">
+            <marquee scrollamount="5">🔥 স্পেশাল চা এবং ভেরি চিপ রেট! ফ্রেন্ডলি আড্ডার সেরা জায়গা ও সেফটি জোন! আজই ভিজিট করুন! 🔥</marquee>
+        </div>
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" id="adminTrigger" title="Click 3 times for Admin Panel">
+                <div id="headerLogoBox" class="w-12 h-12 rounded-full border-2 border-amber-400 overflow-hidden bg-slate-800 flex items-center justify-center">
+                    <i class="fa-solid fa-mug-hot text-amber-400 text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-lg text-amber-400" data-en="Mohan Tea Stall" data-bn="মোহন টি স্টল">Mohan Tea Stall</h2>
+                    <p class="text-xs text-slate-300" data-en="Baguiati - Kestopur Traffic Guard" data-bn="বাগুইহাটি - কেষ্টপুর ট্রাফিক গার্ড">Baguiati - Kestopur Traffic Guard</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleLanguage()" class="bg-amber-500 text-slate-950 font-bold px-3 py-1.5 rounded-full text-xs shadow hover:bg-amber-400 transition">
+                    <span id="langBtnText">বাংলা / EN</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl w-full mx-auto p-4 space-y-6">
+
+        <section id="regSection" class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-lg text-center">
+            <h3 class="text-xl font-bold text-amber-400 mb-2" data-en="Welcome to Addajon!" data-bn="আড্ডাজনে আপনাকে স্বাগতম!">Welcome to Addajon!</h3>
+            <p class="text-sm text-slate-300 mb-4" data-en="Enter your details for instant access & lifetime points." data-bn="ইনস্ট্যান্ট অ্যাক্সেস এবং আজীবন পয়েন্টের জন্য আপনার নাম ও ফোন নম্বর দিন।">Enter your details for instant access & lifetime points.</p>
+            <form id="userRegForm" class="space-y-3 max-w-sm mx-auto">
+                <input type="text" id="regName" placeholder="Your Name (আপনার নাম)" required class="w-full px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-500 text-sm">
+                <input type="tel" id="regPhone" placeholder="Phone Number (ফোন নম্বর)" required class="w-full px-4 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-500 text-sm">
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 rounded-lg text-sm transition shadow" data-en="Start Exploring" data-bn="শুরু করুন">Start Exploring</button>
+            </form>
+        </section>
+
+        <section class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+                <h4 class="font-bold text-amber-400 flex items-center gap-2"><i class="fa-solid fa-location-dot text-red-500"></i> <span data-en="Store Live GPS Location" data-bn="স্টোরের লাইভ জিপিএস লোকেশন">Store Live GPS Location</span></h4>
+                <p id="gpsStatusText" class="text-xs text-slate-300 mt-1">Fetching live location from your device...</p>
+            </div>
+            <a id="navMapBtn" href="https://maps.google.com/?q=Baguiati+Kestopur+Traffic+Guard+Mohan+Tea+Stall" target="_blank" class="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition shadow w-full md:w-auto justify-center">
+                <i class="fa-solid fa-diamond-turn-right"></i> <span data-en="Navigate to Store" data-bn="ম্যাপে রাস্তা দেখুন">Navigate to Store</span>
+            </a>
+        </section>
+
+        <section>
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-amber-400" data-en="Our Special Menu" data-bn="আমাদের বিশেষ মেনু">Our Special Menu</h3>
+            </div>
+            <div id="menuGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                </div>
+        </section>
+
+        <section>
+            <h3 class="text-xl font-bold text-amber-400 mb-4" data-en="Store Gallery & Adda Zone" data-bn="স্টোর গ্যালারি ও আড্ডা জোন">Store Gallery & Adda Zone</h3>
+            <div id="galleryGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                </div>
+        </section>
+
+    </main>
+
+    <div id="adminModal" class="fixed inset-0 z-50 bg-black/80 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <h3 class="text-xl font-bold text-amber-400"><i class="fa-solid fa-user-gear"></i> Admin Dashboard</h3>
+                <button onclick="closeAdminModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-slate-300">Upload Store Logo / Main Photo</label>
+                <input type="file" id="adminLogoInput" accept="image/*" class="w-full text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400">
+                <button onclick="uploadLogoHandler()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-1.5 rounded text-xs font-bold">Update Logo</button>
+            </div>
+
+            <hr class="border-slate-700">
+
+            <div class="space-y-2">
+                <h4 class="font-bold text-sm text-amber-400">Add New Menu Item</h4>
+                <input type="text" id="menuTitle" placeholder="Item Name (e.g. Special Masala Tea)" class="w-full px-3 py-1.5 rounded bg-slate-800 border border-slate-700 text-xs">
+                <input type="text" id="menuPrice" placeholder="Price (e.g. ₹15)" class="w-full px-3 py-1.5 rounded bg-slate-800 border border-slate-700 text-xs">
+                <input type="file" id="menuImageInput" accept="image/*" class="w-full text-xs text-slate-300">
+                <button onclick="addMenuItemHandler()" class="w-full bg-green-600 hover:bg-green-500 text-white py-1.5 rounded text-xs font-bold">Add Item to Menu</button>
+            </div>
+
+            <hr class="border-slate-700">
+
+            <div class="space-y-2">
+                <h4 class="font-bold text-sm text-amber-400">Add Store / Gallery Photo</h4>
+                <input type="file" id="galleryImageInput" accept="image/*" class="w-full text-xs text-slate-300">
+                <button onclick="addGalleryPhotoHandler()" class="w-full bg-purple-600 hover:bg-purple-500 text-white py-1.5 rounded text-xs font-bold">Upload Gallery Photo</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-slate-950 border-t border-slate-800 text-center py-4 text-xs text-slate-400">
+        <p>&copy; 2026 Mohan Tea Stall (Addajon). Baguiati-Kestopur Traffic Guard.</p>
+    </footer>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyATxne5IejhbvXQ4nRAI_ggfR1LzSrx1Fo",
+            authDomain: "sasta-bazaar-5a1f6.firebaseapp.com",
+            databaseURL: "https://sasta-bazaar-5a1f6-default-rtdb.firebaseio.com",
+            projectId: "sasta-bazaar-5a1f6",
+            storageBucket: "sasta-bazaar-5a1f6.firebasestorage.app",
+            messagingSenderId: "109171472455",
+            appId: "1:109171472455:web:e1a20952f4bcb56e0a5962",
+            measurementId: "G-ZCHYZL4LXN"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const storage = firebase.storage();
+
+        const OWNER_WHATSAPP = "9831483992";
+        let currentLang = 'en';
+
+        // 5-Second Splash & Audio Greeting
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                splash.style.opacity = '0';
+                setTimeout(() => splash.remove(), 1000);
+                playWelcomeAudio();
+            }, 5000);
+
+            loadFirebaseData();
+            initGeolocation();
+        });
+
+        function playWelcomeAudio() {
+            if ('speechSynthesis' in window) {
+                const text = "নমস্কার! মোহন টি স্টল আড্ডাজনে আপনাকে স্বাগত জানাই। এখানে বসে চা খাওয়ার ও আড্ডা দেওয়ার দারুণ ব্যবস্থা রয়েছে।";
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'bn-IN';
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Language Toggle
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'bn' : 'en';
+            document.querySelectorAll('[data-en]').forEach(el => {
+                el.innerText = el.getAttribute(`data-${currentLang}`);
+            });
+        }
+
+        // Admin Trigger (3 Clicks on Logo)
+        let clickCount = 0;
+        document.getElementById('adminTrigger').addEventListener('click', () => {
+            clickCount++;
+            if (clickCount === 3) {
+                clickCount = 0;
+                const pass = prompt("Enter Admin Password:");
+                if (pass === "1111100000") {
+                    document.getElementById('adminModal').classList.remove('hidden');
+                } else {
+                    alert("Incorrect Password!");
+                }
+            }
+            setTimeout(() => clickCount = 0, 2000);
+        });
+
+        function closeAdminModal() {
+            document.getElementById('adminModal').classList.add('hidden');
+        }
+
+        // Image to KB Downsampler / Compressor Utility
+        function compressImage(file, callback) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 600;
+                    if (width > height && width > maxDim) {
+                        height *= maxDim / width;
+                        width = maxDim;
+                    } else if (height > maxDim) {
+                        width *= maxDim / height;
+                        height = maxDim;
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    // Compress to JPEG with 0.7 quality to ensure KB size
+                    callback(canvas.toDataURL('image/jpeg', 0.7));
+                }
+            }
+        }
+
+        // Admin Handlers
+        function uploadLogoHandler() {
+            const file = document.getElementById('adminLogoInput').files[0];
+            if (!file) return alert("Select an image first!");
+            compressImage(file, (base64Str) => {
+                db.ref('mohanTeaStall/logo').set(base64Str).then(() => {
+                    alert("Logo updated successfully!");
+                    closeAdminModal();
+                });
+            });
+        }
+
+        function addMenuItemHandler() {
+            const title = document.getElementById('menuTitle').value;
+            const price = document.getElementById('menuPrice').value;
+            const file = document.getElementById('menuImageInput').files[0];
+            if (!title || !price || !file) return alert("Fill all fields!");
+
+            compressImage(file, (base64Str) => {
+                db.ref('mohanTeaStall/menu').push({ title, price, image: base64Str }).then(() => {
+                    alert("Menu item added!");
+                    closeAdminModal();
+                });
+            });
+        }
+
+        function addGalleryPhotoHandler() {
+            const file = document.getElementById('galleryImageInput').files[0];
+            if (!file) return alert("Select photo!");
+
+            compressImage(file, (base64Str) => {
+                db.ref('mohanTeaStall/gallery').push({ image: base64Str }).then(() => {
+                    alert("Photo uploaded to gallery!");
+                    closeAdminModal();
+                });
+            });
+        }
+
+        // Load Data from Firebase
+        function loadFirebaseData() {
+            // Logo
+            db.ref('mohanTeaStall/logo').on('value', (snapshot) => {
+                const logoVal = snapshot.val();
+                if (logoVal) {
+                    document.getElementById('headerLogoBox').innerHTML = `<img src="${logoVal}" class="w-full h-full object-cover">`;
+                    document.getElementById('splashLogoContainer').innerHTML = `<img src="${logoVal}" class="w-full h-full object-cover">`;
+                }
+            });
+
+            // Menu
+            db.ref('mohanTeaStall/menu').on('value', (snapshot) => {
+                const menuGrid = document.getElementById('menuGrid');
+                menuGrid.innerHTML = '';
+                const data = snapshot.val();
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        const item = data[key];
+                        menuGrid.innerHTML += `
+                            <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow flex flex-col justify-between">
+                                <img src="${item.image}" class="w-full h-36 object-cover">
+                                <div class="p-3">
+                                    <h5 class="font-bold text-amber-400 text-sm">${item.title}</h5>
+                                    <p class="text-xs text-slate-300 mb-2">Price: ${item.price}</p>
+                                    <button onclick="orderItem('${item.title}', '${item.price}')" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-1.5 rounded text-xs flex items-center justify-center gap-2">
+                                        <i class="fa-brands fa-whatsapp"></i> Order on WhatsApp
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            });
+
+            // Gallery
+            db.ref('mohanTeaStall/gallery').on('value', (snapshot) => {
+                const galleryGrid = document.getElementById('galleryGrid');
+                galleryGrid.innerHTML = '';
+                const data = snapshot.val();
+                if (data) {
+                    Object.keys(data).forEach(key => {
+                        const item = data[key];
+                        galleryGrid.innerHTML += `
+                            <div class="rounded-lg overflow-hidden border border-slate-700 h-28">
+                                <img src="${item.image}" class="w-full h-full object-cover">
+                            </div>
+                        `;
+                    });
+                }
+            });
+        }
+
+        // WhatsApp Order Dispatcher
+        function orderItem(title, price) {
+            const regName = localStorage.getItem('mohan_user_name') || 'Guest Customer';
+            const regPhone = localStorage.getItem('mohan_user_phone') || 'Not Provided';
+            const msg = `Hello Mohan Tea Stall,\nI want to order:\nItem: ${title}\nPrice: ${price}\n\nCustomer Name: ${regName}\nPhone: ${regPhone}`;
+            window.open(`https://wa.me/91${OWNER_WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        // Registration Handling
+        document.getElementById('userRegForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('regName').value;
+            const phone = document.getElementById('regPhone').value;
+            localStorage.setItem('mohan_user_name', name);
+            localStorage.setItem('mohan_user_phone', phone);
+            
+            alert(`ধন্যবাদ ${name}! মোহন টি স্টল আড্ডাজনে আপনাকে স্বাগতম।`);
+            document.getElementById('regSection').innerHTML = `<div class="p-3 text-amber-400 font-bold">স্বাগতম ${name}! আপনি এখন সরাসরি অর্ডার করতে পারবেন।</div>`;
+        });
+
+        // Realtime GPS Navigation Init
+        function initGeolocation() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    document.getElementById('gpsStatusText').innerText = `Live GPS Connected (${position.coords.latitude.toFixed(2)}, ${position.coords.longitude.toFixed(2)})`;
+                }, (error) => {
+                    document.getElementById('gpsStatusText').innerText = "Location ready via Store Default (Baguiati-Kestopur)";
+                });
+            }
+        }
+    </script>
+</body>
+</html>
